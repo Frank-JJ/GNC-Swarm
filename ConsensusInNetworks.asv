@@ -6,8 +6,7 @@
 V = [1,2,3]
 
 % Define edges
-E={[2],[1],[1,2]}
-E{3}(2)
+E={[2],[1,3],[1]}
 ismember(1,E{3})
 
 % Define graph
@@ -73,13 +72,15 @@ L*x_star
 % Testing the notions given in chapter II Information Consensus
 
 % Defining vertice vector V
-V = [1,2,3]
+V = [1,2,3,4,5]
 
 % Defining adjacancy matrix A
 A = [
-    0,1,0
-    1,0,1
-    0,1,0
+    0,1,1,1,1
+    1,0,0,0,0
+    1,0,0,0,0
+    1,0,0,0,0
+    1,0,0,0,0
     ]
 
 %res=find(A(3,:)==1)
@@ -116,14 +117,31 @@ for i=1:length(V)
 end
 D
 
-% Defnining graph Laplacian L
+%% Defnining graph Laplacian L
 L = D-A
 
+% check row-sum is equal to zero
+rowSums = sum(L,2)
+
 % Testing with an actual system
-x = [1;2;3]
+x = [1;2;3;4;5]
 
 x_dot = -L*x
 
+disp("sum of x_dot:")
+sum(x_dot)
+
+x_final = x_dot + x
+disp("supposed alpha:")
+alpha_cal = sum(x)/length(x)
+disp("actual alpha:")
+alpha_res = sum(x_final)/length(x_final)
+
+plot([0;1],[x,x_final],[0,1],[alpha_cal,alpha_res])
+legend('x1','x2','x3','x4','x5','aplha')
+
+
+figure
 x_dot_i = zeros(length(V),1);
 x_hist = x;
 x_dot_hist = x;
@@ -142,3 +160,37 @@ end
 plot(x_hist')
 hold on
 plot(x_dot_hist')
+
+
+%% Defining alternative graph Laplacian for discrite time P, a so called
+% Perron matrix
+% Need to define Laplacian matrix first
+L = D-A
+
+% Then Perron can be defined
+delta = max(diag(D))
+str = "Epsilon can be (" + 0 + "," + 1/delta + "]";
+disp(str)
+epsilon = 1/delta % This value should be (0,delta^-1)
+P = eye(length(L)) - epsilon*L
+
+% Check Perron matrix is defined correctly
+disp("A correct Perron matrix should give 1 when multiplied by egeinvector with ones")
+P*ones(length(L),1)
+
+% Testing with an actual system
+x_0 = [1;2;3;4;5]
+
+% Expected Decision (balanced)
+alpha_expected = sum(x_0)/length(x_0)
+
+% Testing convergence
+figure
+x = x_0;
+x_hist = [x];
+for t=1:10
+    x = P*x;
+    x_hist = [x_hist,x];
+end
+plot(1:length(x_hist),x_hist',1:)
+legend(cellstr(num2str(V', 'N=%-d')))
