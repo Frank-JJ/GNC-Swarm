@@ -1,5 +1,5 @@
 % Motors weigh 1kg
-m_vec = [1.1,1.1,1.1,1.1]
+m_vec = [1, 1, 1, 1]
 m = sum(m_vec)
 
 % Motors are at these coordinates from center of mass
