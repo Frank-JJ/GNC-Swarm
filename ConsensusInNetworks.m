@@ -72,15 +72,14 @@ L*x_star
 % Testing the notions given in chapter II Information Consensus
 
 % Defining vertice vector V
-V = [1,2,3,4,5]
+V = [1,2,3,4]
 
 % Defining adjacancy matrix A
 A = [
-    0,1,1,1,1
-    1,0,0,0,0
-    1,0,0,0,0
-    1,0,0,0,0
-    1,0,0,0,0
+    0,1,1,1
+    1,0,0,0
+    1,0,0,0
+    1,0,0,0
     ]
 
 %res=find(A(3,:)==1)
@@ -124,7 +123,7 @@ L = D-A
 rowSums = sum(L,2)
 
 % Testing with an actual system
-x = [1;2;3;4;5]
+x = [1;2;3;4]
 
 x_dot = -L*x
 
@@ -179,7 +178,7 @@ disp("A correct Perron matrix should give 1 when multiplied by egeinvector with 
 P*ones(length(L),1)
 
 % Testing with an actual system
-x_0 = [1;2;3;4;5]
+x_0 = [1;2;3;4]
 
 % Expected Decision (balanced)
 alpha_expected = sum(x_0)/length(x_0)
@@ -188,11 +187,12 @@ alpha_expected = sum(x_0)/length(x_0)
 figure
 x = x_0;
 x_hist = [x];
-for t=1:10
+loops = 100
+for t=1:loops
     x = P*x;
     x_hist = [x_hist,x];
 end
-plot(1:length(x_hist),x_hist',[1,10],[alpha_expected,alpha_expected])
+plot(1:length(x_hist),x_hist',[1,loops],[alpha_expected,alpha_expected])
 legends = cellstr(num2str(V', 'N=%-d'))
 legends{end+1} = "alpha"
 legend(legends)
