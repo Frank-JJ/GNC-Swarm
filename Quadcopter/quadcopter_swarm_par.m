@@ -41,15 +41,21 @@ disp("------------------")
 
 % Defining vertice vector V
 %V = [1,2,3,4]
-V = 1:4
+%V = 1:4 %W/o fix-agent
+V = 1:5
 
 %Starting x-values for drones in swarm
-x_0 = [0, 1, 2, 3]'
+%x_0 = [0, 1, 2, 3]'
 %x_0 = [0, 3, 2, 1,-1,-2,-3,-3]'
+x_0 = [0, 1, 2, 3, 0]' %Fix-agent
 
-%Defining desired position p_d
-x_d = [1,4,-2,7]'
+%Defining desired displacements p_d
+x_d = [1,4,-2,7, 0]'
 %x_d = [1,4,-2,7,10,3,-4,6]'
+
+%Desired fix-agent
+fix = true;
+
 
 R_min = 1; %Dist between drones in m
 
@@ -66,6 +72,24 @@ E
 
 %Use found edges to find adjecency matrix
 A = zeros(length(V));
+if fix
+for i = V
+    if i == length(V)
+        A(i,j) = 0;
+    end
+    for j = V
+        if j == length(V) && not(i == length(V)) %Meaning this is the fix-agent
+            A(i,j) = 1;
+        end
+        for val = E
+            if isequal(val, {[i,j]}) && not(i == length(V))
+                A(i,j) = 1;
+                break
+            end
+        end
+    end
+end
+else
 for i = V
     for j = V
         for val = E
@@ -76,6 +100,8 @@ for i = V
         end
     end
 end
+end
+
 A
 
 % Defining neighbors N
@@ -237,3 +263,6 @@ for i=1:length(x)
     end
 end
 sim_distances
+
+%Is the fix-agent actually fixed? (yes)
+max(simout_x(:,end)) == min(simout_x(:,end)) 
