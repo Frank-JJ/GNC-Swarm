@@ -45,7 +45,7 @@ disp("------------------")
 V = [1,2,3,4]
 
 %Starting x-values for drones in swarm
-x_0 = [-1, 2, 0, 1]'; 
+x_0 = [0, 3, 2, 1]'; 
 
 R_min = 1; %Dist between drones in m
 
@@ -117,7 +117,7 @@ shouldBeZero = v'*L
 delta = max(diag(D))
 str = "Epsilon can be (" + 0 + "," + 1/delta + "]";
 disp(str)
-epsilon = 1/delta % This value should be (0,delta^-1)
+epsilon = 1/delta*0.999 % This value should be (0,delta^-1)
 %epsilon = 0.1
 P = eye(length(L)) - epsilon*L
 % Alternative Perron definition
@@ -141,7 +141,6 @@ disp("Eigenvalues(d) and eigenvectors(v) of P")
 
 1-diag(D)/delta
 
-%%
 % Testing convergence
 
 % Expected Decision (balanced)
@@ -150,12 +149,12 @@ alpha_expected = sum(x_0)/length(x_0)
 figure
 x = x_0;
 x_hist = [x];
-loops = 100;
+loops = 20;
 for t=1:loops
-    x = P*(x_d-x)
+    x = P*(x)
     x_hist = [x_hist,x];
 end
-plot(1:length(x_hist),x_hist')
+plot(1:length(x_hist),x_hist',[0,loops],[alpha_expected,alpha_expected])
 legends = cellstr(num2str(V', 'N=%-d'))
 legend(legends)
 title("Perron")
@@ -179,13 +178,45 @@ final_distances
 figure
 x = x_0;
 x_hist = [x];
-loops = 100;
+loops = 1000;
+delta_time = 0.005;
 for t=1:loops
-    x_dot = -L*(x-x_d);
-    x = x + x_dot * 0.1;
+    x_dot = -L*(x);
+    x = x + x_dot * delta_time;
     x_hist = [x_hist,x];
 end
 plot(1:length(x_hist),x_hist')
 legends = cellstr(num2str(V', 'N=%-d'))
 legend(legends)
 title("Laplacian")
+
+figure
+x = x_0;
+x_hist = [x];
+loops = 1000;
+delta_time = 0.005;
+for t=1:loops
+    x_dot = -L*(x-x_d);
+    x = x + x_dot * delta_time;
+    x_hist = [x_hist,x];
+end
+plot(1:length(x_hist),x_hist')
+legends = cellstr(num2str(V', 'N=%-d'))
+legend(legends)
+title("Laplacian with x_d")
+
+%%
+% Compare simulink output with matlab output
+
+distances
+
+final_distances
+
+sim_lastx = simout_x(end,:)
+sim_distances = zeros(length(x));
+for i=1:length(x)
+    for j=1:length(x)
+        final_distances(i,j) = sim_lastx(i) - sim_lastx(j);
+    end
+end
+sim_distances
