@@ -36,16 +36,20 @@ g = 9.82
 F_e_g = [0; 0; g]*m % m/s
 
 
-%%---------------------------------------------
-%Swarm dynamics
-%%
+%% Swarm dynamics
 disp("------------------")
 
 % Defining vertice vector V
-V = [1,2,3,4]
+%V = [1,2,3,4]
+V = 1:4
 
 %Starting x-values for drones in swarm
-x_0 = [0, 3, 2, 1]'; 
+x_0 = [0, 1, 2, 3]'
+%x_0 = [0, 3, 2, 1,-1,-2,-3,-3]'
+
+%Defining desired position p_d
+x_d = [1,4,-2,7]'
+%x_d = [1,4,-2,7,10,3,-4,6]'
 
 R_min = 1; %Dist between drones in m
 
@@ -73,9 +77,6 @@ for i = V
     end
 end
 A
-
-%Defining desired position p_d
-x_d = [1,4,-2,7]'
 
 % Defining neighbors N
 N = {};
@@ -137,9 +138,9 @@ disp("Eigenvalues(d) and eigenvectors(v) of L")
 [v_L,d_L] = eig(L)
 disp("Eigenvalues(d) and eigenvectors(v) of P")
 [v_P,d_P] = eig(P)
-1-epsilon*diag(d_L)
+suppused_eigenvalues_for_P = 1-epsilon*diag(d_L)
 
-1-diag(D)/delta
+suppused_eigenvalues_for_P = 1-diag(D)/delta
 
 % Testing convergence
 
@@ -151,66 +152,82 @@ x = x_0;
 x_hist = [x];
 loops = 20;
 for t=1:loops
-    x = P*(x)
+    x = P*(x);
     x_hist = [x_hist,x];
 end
 plot(1:length(x_hist),x_hist',[0,loops],[alpha_expected,alpha_expected])
-legends = cellstr(num2str(V', 'N=%-d'))
+legends = cellstr(num2str(V', 'N=%-d'));
+legends{end+1} = "expected alpha";
 legend(legends)
 title("Perron")
 
-distances = zeros(length(x_d));
+expected_distances = zeros(length(x_d));
 for i=1:length(x_d)
     for j=1:length(x_d)
-        distances(i,j) = x_d(i) - x_d(j);
+        expected_distances(i,j) = x_d(i) - x_d(j);
     end
 end
-distances
+expected_distances
 
-final_distances = zeros(length(x));
+final_distances_P = zeros(length(x));
 for i=1:length(x)
     for j=1:length(x)
-        final_distances(i,j) = x(i) - x(j);
+        final_distances_P(i,j) = x(i) - x(j);
     end
 end
-final_distances
+final_distances_P
 
 figure
 x = x_0;
 x_hist = [x];
 loops = 1000;
-delta_time = 0.005;
+delta_time = epsilon;
 for t=1:loops
     x_dot = -L*(x);
     x = x + x_dot * delta_time;
     x_hist = [x_hist,x];
 end
 plot(1:length(x_hist),x_hist')
-legends = cellstr(num2str(V', 'N=%-d'))
-legend(legends)
+legends = cellstr(num2str(V', 'N=%-d'));
+legend(legends);
 title("Laplacian")
+
+final_distances_L = zeros(length(x));
+for i=1:length(x)
+    for j=1:length(x)
+        final_distances_L(i,j) = x(i) - x(j);
+    end
+end
+final_distances_L
 
 figure
 x = x_0;
 x_hist = [x];
 loops = 1000;
-delta_time = 0.005;
 for t=1:loops
     x_dot = -L*(x-x_d);
     x = x + x_dot * delta_time;
     x_hist = [x_hist,x];
 end
 plot(1:length(x_hist),x_hist')
-legends = cellstr(num2str(V', 'N=%-d'))
+legends = cellstr(num2str(V', 'N=%-d'));
 legend(legends)
 title("Laplacian with x_d")
+
+final_distances_L_w_desired_values = zeros(length(x));
+for i=1:length(x)
+    for j=1:length(x)
+        final_distances_L_w_desired_values(i,j) = x(i) - x(j);
+    end
+end
+final_distances_L_w_desired_values
 
 %%
 % Compare simulink output with matlab output
 
-distances
+expected_distances
 
-final_distances
+final_distances_L_w_desired_values
 
 sim_lastx = simout_x(end,:)';
 sim_distances = zeros(length(x));
