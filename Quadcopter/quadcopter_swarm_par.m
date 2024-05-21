@@ -47,24 +47,27 @@ V = 1:5
 %Starting x-values for drones in swarm
 %x_0 = [0, 1, 2, 3]'
 %x_0 = [0, 3, 2, 1,-1,-2,-3,-3]'
-x_0 = [0, 1, 2, 3, 0]' %Fix-agent
+p_0 = [0, 1, 2, 3, 0
+       1, 2, 2.2, 1.32, 0]' %Fix-agent
 
 %Defining desired displacements p_d
-x_d = [1,4,-2,7, 0]'
+p_d = [1,4,-2,7,0
+       2,5,2,-2,0]'
+
 %x_d = [1,4,-2,7,10,3,-4,6]'
 
 %Desired fix-agent
 fix = true;
 
 
-R_min = 1; %Dist between drones in m
+R_min = 2; %Dist between drones in m
 
 %Define edges using R_min distance between vertices
 E = {};
 for i = V
     for j = V
-        if not(i == j) && abs(x_0(i) - x_0(j)) <= R_min
-            E{end+1} = [i,j];           
+        if not(i == j) && norm(p_0(i,:) - p_0(j,:)) <= R_min
+            E{end+1} = [i,j];
         end
     end
 end
@@ -74,17 +77,18 @@ E
 A = zeros(length(V));
 if fix
 for i = V
-    if i == length(V)
+    if i == length(V) %Meaning this is the fix-agent
         A(i,j) = 0;
-    end
-    for j = V
-        if j == length(V) && not(i == length(V)) %Meaning this is the fix-agent
-            A(i,j) = 1;
-        end
-        for val = E
-            if isequal(val, {[i,j]}) && not(i == length(V))
+    else
+        for j = V
+            if j == length(V)
                 A(i,j) = 1;
-                break
+            end
+            for val = E
+                if isequal(val, {[i,j]})
+                    A(i,j) = 1;
+                    break
+                end
             end
         end
     end
@@ -171,17 +175,21 @@ suppused_eigenvalues_for_P = 1-diag(D)/delta
 % Testing convergence
 
 % Expected Decision (balanced)
-alpha_expected = sum(x_0)/length(x_0)
+alpha_expected = sum(p_0,1)/length(p_0)
 
 figure
-x = x_0;
-x_hist = [x];
+p = p_0;
+x_hist = [p(:,1)];
+y_hist = [p(:,2)];
 loops = 20;
 for t=1:loops
-    x = P*(x);
-    x_hist = [x_hist,x];
+    p = P*(p);
+    x_hist = [x_hist,p(:,1)];
+    y_hist = [y_hist,p(:,2)];
 end
-plot(1:length(x_hist),x_hist',[0,loops],[alpha_expected,alpha_expected])
+plot(1:length(x_hist),x_hist',[1,loops+1],[alpha_expected(1),alpha_expected(1)])
+hold on
+plot(1:length(y_hist),y_hist',[1,loops+1],[alpha_expected(2),alpha_expected(2)])
 legends = cellstr(num2str(V', 'N=%-d'));
 legends{end+1} = "expected alpha";
 legend(legends)
@@ -204,7 +212,7 @@ end
 final_distances_P
 
 figure
-x = x_0;
+x = x_0(:,1);
 x_hist = [x];
 loops = 1000;
 delta_time = epsilon;
@@ -227,7 +235,7 @@ end
 final_distances_L
 
 figure
-x = x_0;
+x = x_0(:,1);
 x_hist = [x];
 loops = 1000;
 for t=1:loops
