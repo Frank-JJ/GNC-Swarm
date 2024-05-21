@@ -45,9 +45,9 @@ disp("------------------")
 V = [1,2,3,4]
 
 %Starting x-values for drones in swarm
-x_0 = [0, 3, 2, 1]'; 
+x_0 = [-1, 2, 0, 1]'; 
 
-R_min = 10; %Dist between drones in m
+R_min = 1; %Dist between drones in m
 
 %Define edges using R_min distance between vertices
 E = {};
@@ -117,7 +117,7 @@ shouldBeZero = v'*L
 delta = max(diag(D))
 str = "Epsilon can be (" + 0 + "," + 1/delta + "]";
 disp(str)
-epsilon = 1/delta*0.999 % This value should be (0,delta^-1)
+epsilon = 1/delta % This value should be (0,delta^-1)
 %epsilon = 0.1
 P = eye(length(L)) - epsilon*L
 % Alternative Perron definition
@@ -141,6 +141,7 @@ disp("Eigenvalues(d) and eigenvectors(v) of P")
 
 1-diag(D)/delta
 
+%%
 % Testing convergence
 
 % Expected Decision (balanced)
@@ -149,12 +150,12 @@ alpha_expected = sum(x_0)/length(x_0)
 figure
 x = x_0;
 x_hist = [x];
-loops = 20;
+loops = 100;
 for t=1:loops
-    x = P*(x)
+    x = P*(x_d-x)
     x_hist = [x_hist,x];
 end
-plot(1:length(x_hist),x_hist',[0,loops],[alpha_expected,alpha_expected])
+plot(1:length(x_hist),x_hist')
 legends = cellstr(num2str(V', 'N=%-d'))
 legend(legends)
 title("Perron")
@@ -178,6 +179,7 @@ final_distances
 figure
 x = x_0;
 x_hist = [x];
+loops = 100;
 for t=1:loops
     x_dot = -L*(x-x_d);
     x = x + x_dot * 0.1;
