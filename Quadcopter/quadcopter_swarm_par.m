@@ -42,22 +42,22 @@ disp("------------------")
 % Defining vertice vector V
 %V = [1,2,3,4]
 %V = 1:4 %W/o fix-agent
-V = 1:5
+V = 1:4
 
 %Starting x-values for drones in swarm
 %x_0 = [0, 1, 2, 3]'
 %x_0 = [0, 3, 2, 1,-1,-2,-3,-3]'
-p_0 = [0, 1, 2, 3, 0
-       1, 2, 2.2, 1.32, 0]' %Fix-agent
+p_0 = [0, 1, 2, 3, 0]'; %Fix-agent
+p_0 = p_0(V)
 
 %Defining desired displacements p_d
-p_d = [1,4,-2,7,0
-       2,5,2,-2,0]'
+p_d = [1,4,-2,7,0]';
+p_d = p_d(V)
 
 %x_d = [1,4,-2,7,10,3,-4,6]'
 
 %Desired fix-agent
-fix = true;
+fix = false;
 
 
 R_min = 2; %Dist between drones in m
@@ -179,6 +179,241 @@ alpha_expected = sum(p_0,1)/length(p_0)
 
 figure
 p = p_0;
+x_hist = [p];
+loops = 20;
+for t=1:loops
+    p = P*(p);
+    x_hist = [x_hist,p];
+end
+plot(1:length(x_hist),x_hist',[1,loops+1],[alpha_expected(1),alpha_expected(1)])
+legends = cellstr(num2str(V', 'i=%-d'));
+legends{end+1} = "expected alpha";
+legend(legends)
+title("Perron x-axis")
+
+expected_distances_x = zeros(length(p_d));
+for i=1:length(p_d)
+    for j=1:length(p_d)
+        expected_distances_x(i,j) = p_d(i) - p_d(j);
+    end
+end
+expected_distances_x
+
+final_distances_P_x = zeros(length(p));
+for i=1:length(p)
+    for j=1:length(p)
+        final_distances_P_x(i,j) = p(i) - p(j);
+    end
+end
+final_distances_P_x
+
+figure
+p = p_0;
+x_hist = [p];
+loops = 20;
+delta_time = epsilon;
+for t=1:loops
+    p_dot = -L*(p);
+    p = p + p_dot * delta_time;
+    x_hist = [x_hist,p];
+end
+plot(1:length(x_hist),x_hist',[1,loops+1],[alpha_expected(1),alpha_expected(1)])
+legends = cellstr(num2str(V', 'i=%-d'));
+legends{end+1} = "expected alpha";
+legend(legends);
+title("Laplacian x-axis")
+
+final_distances_L_x = zeros(length(p));
+for i=1:length(p)
+    for j=1:length(p)
+        final_distances_L_x(i,j) = p(i) - p(j);
+    end
+end
+final_distances_L_x
+
+figure
+p = p_0;
+x_hist = [p];
+loops = 20;
+for t=1:loops
+    p_dot = -L*(p-p_d);
+    p = p + p_dot * delta_time;
+    x_hist = [x_hist,p];
+end
+plot(1:length(x_hist),x_hist',[1,length(x_hist)],[p_d,p_d])
+legends = cellstr(num2str(V', 'i=%-d'));
+legends = cat(1,legends,cellstr(num2str(V', 'expected_i=%-d')));
+legend(legends)
+title("Laplacian with p_d x-axis")
+
+final_distances_L_w_desired_values_x = zeros(length(p));
+for i=1:length(p)
+    for j=1:length(p)
+        final_distances_L_w_desired_values_x(i,j) = p(i) - p(j);
+    end
+end
+final_distances_L_w_desired_values_x
+
+%%
+% Compare simulink output with matlab output
+
+expected_distances_x
+
+final_distances_L_w_desired_values_x
+
+sim_lastx = simout_x(end,:)';
+sim_distances = zeros(length(p));
+for i=1:length(p)
+    for j=1:length(p)
+        sim_distances(i,j) = sim_lastx(i) - sim_lastx(j);
+    end
+end
+sim_distances
+
+%Is the fix-agent actually fixed? (yes)
+agent_fixed = max(simout_x(:,end)) == min(simout_x(:,end)) 
+
+%% Swarm dynamics 2D
+
+disp("------------------")
+
+% Defining vertice vector V
+%V = [1,2,3,4]
+%V = 1:4 %W/o fix-agent
+V = 1:5
+
+%Starting x-values for drones in swarm
+p_0 = [0, 1, 2, 3, 0;
+       0, 1, 2, 3, 0]' %Fix-agent
+p_0 = p_0(V,:)
+
+%Defining desired displacements p_d
+p_d = [1,4,-2,7, 0;
+       1,4,-2,7, 0]'
+p_d = p_d(V,:)
+
+%Desired fix-agent
+fix = true;
+
+
+R_min = 100; %Dist between drones in m
+
+%Define edges using R_min distance between vertices
+E = {};
+for i = V
+    for j = V
+        if not(i == j) && norm(p_0(i,:) - p_0(j,:)) <= R_min
+            E{end+1} = [i,j];           
+        end
+    end
+end
+E
+
+%Use found edges to find adjecency matrix
+A = zeros(length(V));
+if fix
+for i = V
+    if i == length(V) %Meaning this is the fix-agent
+        A(i,j) = 0;
+    
+    else
+        for j = V
+            if j == length(V)
+                A(i,j) = 1;
+            end
+            for val = E
+                if isequal(val, {[i,j]})
+                    A(i,j) = 1;
+                    break
+                end
+            end
+        end
+    end
+end
+else
+for i = V
+    for j = V
+        for val = E
+            if isequal(val, {[i,j]})
+                A(i,j) = 1;
+                break
+            end
+        end
+    end
+end
+end
+
+A
+
+% Defining neighbors N
+N = {};
+for i = V
+    N(i) = {find(not(A(i,:)==0))};
+end
+N
+
+% Defining graph G
+G = {V,E}
+
+% Defining degree matrix D
+D = zeros(length(V));
+for i = V
+    for j = V
+        if not(i==j)
+            D(i,i) = D(i,i) + A(i,j);
+        end
+    end
+end
+D
+
+% Defnining graph Laplacian L
+L = D-A
+
+% check row-sum is equal to zero
+rowSums = sum(L,2)
+
+% Define eigenvector of *1* v
+v = ones(length(L),1)
+
+% Test result of L*v=lambda*v, which should then give zero
+shouldBeZero = L*v
+
+% Test result of L*v=lambda*v, which should also then give zero
+shouldBeZero = v'*L
+
+% Then Perron can be defined
+delta = max(diag(D))
+str = "Epsilon can be (" + 0 + "," + 1/delta + "]";
+disp(str)
+epsilon = 1/delta*0.999 % This value should be (0,delta^-1)
+%epsilon = 0.1
+P = eye(length(L)) - epsilon*L
+% Alternative Perron definition
+%P = ((eye(length(D))+D)^-1) * (eye(length(A)) + A)
+
+% Check Perron matrix is defined correctly
+disp("A correct Perron matrix should give 1 when multiplied by egeinvector with ones")
+P*ones(length(L),1)
+
+% check row-sum is equal to one
+rowSums = sum(P,2)
+
+% check col-sum is equal to one
+colSums = sum(P,1)
+
+disp("Eigenvalues(d) and eigenvectors(v) of L")
+[v_L,d_L] = eig(L)
+disp("Eigenvalues(d) and eigenvectors(v) of P")
+[v_P,d_P] = eig(P)
+suppused_eigenvalues_for_P = 1-epsilon*diag(d_L)
+
+% Testing convergence
+
+% Expected Decision (balanced)
+alpha_expected = sum(p_0,1)/size(p_0,1)
+
+figure
+p = p_0(1:length(V),:)
 x_hist = [p(:,1)];
 y_hist = [p(:,2)];
 loops = 20;
@@ -187,90 +422,127 @@ for t=1:loops
     x_hist = [x_hist,p(:,1)];
     y_hist = [y_hist,p(:,2)];
 end
-plot(1:length(x_hist),x_hist',[1,loops+1],[alpha_expected(1),alpha_expected(1)])
-hold on
-plot(1:length(y_hist),y_hist',[1,loops+1],[alpha_expected(2),alpha_expected(2)])
-legends = cellstr(num2str(V', 'N=%-d'));
+plot(1:length(x_hist),x_hist, ...
+    1:length(y_hist),y_hist, ...
+    [1,loops+1],[alpha_expected(1),alpha_expected(1)])
+legends = cellstr(num2str(V', 'ix=%-d'));
+legends = cat(1,legends,cellstr(num2str(V', 'iy=%-d')));
 legends{end+1} = "expected alpha";
 legend(legends)
-title("Perron")
+title("Perron 2D")
 
-expected_distances = zeros(length(x_d));
-for i=1:length(x_d)
-    for j=1:length(x_d)
-        expected_distances(i,j) = x_d(i) - x_d(j);
+expected_distances_x = zeros(length(p_d));
+expected_distances_y = zeros(length(p_d));
+for i=1:length(p_d)
+    for j=1:length(p_d)
+        expected_distances_x(i,j) = p_d(i,1) - p_d(j,1);
+        expected_distances_y(i,j) = p_d(i,2) - p_d(j,2);
     end
 end
-expected_distances
+expected_distances_x
+expected_distances_y
 
-final_distances_P = zeros(length(x));
-for i=1:length(x)
-    for j=1:length(x)
-        final_distances_P(i,j) = x(i) - x(j);
+final_distances_P_x = zeros(length(p));
+final_distances_P_y = zeros(length(p));
+for i=1:length(p)
+    for j=1:length(p)
+        final_distances_P_x(i,j) = p(i,1) - p(j,1);
+        final_distances_P_y(i,j) = p(i,2) - p(j,2);
     end
 end
-final_distances_P
+final_distances_P_x
+final_distances_P_y
 
 figure
-x = x_0(:,1);
-x_hist = [x];
-loops = 1000;
+p = p_0;
+x_hist = [p(:,1)];
+y_hist = [p(:,2)];
+loops = 20;
 delta_time = epsilon;
 for t=1:loops
-    x_dot = -L*(x);
-    x = x + x_dot * delta_time;
-    x_hist = [x_hist,x];
+    p_dot = -L*(p);
+    p = p + p_dot * delta_time;
+    x_hist = [x_hist,p(:,1)];
+    y_hist = [y_hist,p(:,2)];
 end
-plot(1:length(x_hist),x_hist')
-legends = cellstr(num2str(V', 'N=%-d'));
-legend(legends);
-title("Laplacian")
+plot(1:length(x_hist),x_hist, ...
+    1:length(y_hist),y_hist, ...
+    [1,loops+1],[alpha_expected(1),alpha_expected(1)])
+legends = cellstr(num2str(V', 'ix=%-d'));
+legends = cat(1,legends,cellstr(num2str(V', 'iy=%-d')));
+legends{end+1} = "expected alpha";
+legend(legends)
+title("Laplacian 2D")
 
-final_distances_L = zeros(length(x));
-for i=1:length(x)
-    for j=1:length(x)
-        final_distances_L(i,j) = x(i) - x(j);
+
+final_distances_L_x = zeros(length(p));
+final_distances_L_y = zeros(length(p));
+for i=1:length(p)
+    for j=1:length(p)
+        final_distances_L_x(i,j) = p(i,1) - p(j,1);
+        final_distances_L_y(i,j) = p(i,2) - p(j,2);
     end
 end
-final_distances_L
+final_distances_L_x
+final_distances_L_y
 
 figure
-x = x_0(:,1);
-x_hist = [x];
-loops = 1000;
+p = p_0;
+x_hist = [p(:,1)];
+y_hist = [p(:,2)];
+loops = 20;
+delta_time = epsilon;
 for t=1:loops
-    x_dot = -L*(x-x_d);
-    x = x + x_dot * delta_time;
-    x_hist = [x_hist,x];
+    p_dot = -L*(p-p_d);
+    p = p + p_dot * delta_time;
+    x_hist = [x_hist,p(:,1)];
+    y_hist = [y_hist,p(:,2)];
 end
-plot(1:length(x_hist),x_hist')
-legends = cellstr(num2str(V', 'N=%-d'));
+plot(1:length(x_hist),x_hist' ...
+    ,1:length(y_hist),y_hist' ...
+    ,[1,length(x_hist)],[p_d(:,1),p_d(:,1)] ...
+    ,[1,length(y_hist)],[p_d(:,1),p_d(:,2)])
+legends = cellstr(num2str(V', 'ix=%-d'));
+legends = cat(1,legends,cellstr(num2str(V', 'iy=%-d')));
+legends = cat(1,legends,cellstr(num2str(V', 'expected_ix=%-d')));
+legends = cat(1,legends,cellstr(num2str(V', 'expected_iy=%-d')));
 legend(legends)
-title("Laplacian with x_d")
+title("Laplacian with p_d 2D")
 
-final_distances_L_w_desired_values = zeros(length(x));
-for i=1:length(x)
-    for j=1:length(x)
-        final_distances_L_w_desired_values(i,j) = x(i) - x(j);
+final_distances_L_w_desired_values_x = zeros(length(p));
+final_distances_L_w_desired_values_y = zeros(length(p));
+for i=1:length(p)
+    for j=1:length(p)
+        final_distances_L_w_desired_values_x(i,j) = p(i,1) - p(j,1);
+        final_distances_L_w_desired_values_y(i,j) = p(i,2) - p(j,2);
     end
 end
-final_distances_L_w_desired_values
+final_distances_L_w_desired_values_x
+final_distances_L_w_desired_values_y
 
 %%
-% Compare simulink output with matlab output
+% Compare simulink output with matlab output 2D
 
-expected_distances
+expected_distances_x
 
-final_distances_L_w_desired_values
+final_distances_L_w_desired_values_x
 
-sim_lastx = simout_x(end,:)';
-sim_distances = zeros(length(x));
-for i=1:length(x)
-    for j=1:length(x)
-        sim_distances(i,j) = sim_lastx(i) - sim_lastx(j);
+sim_last = simout_x(end-3:end,:)
+sim_distances_x = zeros(length(V));
+sim_distances_y = zeros(length(V));
+for i=V
+    for j=V
+        sim_distances_x(i,j) = sim_last(i,1) - sim_last(j,1);
+        sim_distances_y(i,j) = sim_last(i,2) - sim_last(j,2);
     end
 end
-sim_distances
+sim_distances_x
 
-%Is the fix-agent actually fixed? (yes)
-max(simout_x(:,end)) == min(simout_x(:,end)) 
+expected_distances_y
+
+final_distances_L_w_desired_values_y
+
+sim_distances_y
+
+%Is the fix-agent actually fixed?
+agent_fixed = max(simout_x(:,end)) == min(simout_x(:,end)) 
