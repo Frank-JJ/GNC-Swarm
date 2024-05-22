@@ -28,15 +28,24 @@ M_RB = [
 ]
 
 % PID parameters
-PID_inner_max = 100
-PID_outer_max = 10
+thrust_max = 100;
+angle_max = 5*pi;
+PID_outer_max = 10;
+
+out_P = 10;
+out_I = 0.1;
+out_D = 40;
+
+in_P = 10;
+in_I = 0;
+in_D = 20;
 
 % Gravity
 g = 9.82
 F_e_g = [0; 0; g]*m % m/s
 
 
-%% Swarm dynamics
+%% Swarm dynamics 1D
 disp("------------------")
 
 % Defining vertice vector V
@@ -282,6 +291,13 @@ disp("------------------")
 %V = 1:4 %W/o fix-agent
 V = 1:5
 
+%Weights for Func_1 and Func_2
+w_1 = 6.5;
+w_2 = sqrt(3*w_1^2)*1.05;
+w = 1;
+
+r_m = 1; %1 m  distance between drones
+
 %Starting x-values for drones in swarm
 p_0 = [0, 1, 2, 3, 0;
        0, 1, 2, 3, 0]' %Fix-agent
@@ -289,7 +305,7 @@ p_0 = p_0(V,:)
 
 %Defining desired displacements p_d
 p_d = [1,4,-2,7, 0;
-       1,4,-2,7, 0]'
+       0,0,0,0, 0]'
 p_d = p_d(V,:)
 
 %Desired fix-agent
