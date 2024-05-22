@@ -52,12 +52,12 @@ DEF QuadBody_3 Transform {
       }
     }
     DEF Camera_0002 Viewpoint {
-      description "Quadcopter Camera"
+      description "Quad 3"
       position 0 -0.1 0
       orientation 1 0 0 -1.57
     }
     DEF OnQuad_0002 Viewpoint {
-      description "Chase"
+      description "Chase Quad 3"
       position -1 0.25 0
       orientation 0 1 0 -1.57
     }
@@ -100,12 +100,12 @@ DEF QuadBody_1 Transform {
       }
     }
     DEF Camera Viewpoint {
-      description "Quadcopter Camera"
+      description "Quad 1"
       position 0 -0.1 0
       orientation 1 0 0 -1.57
     }
     DEF OnQuad Viewpoint {
-      description "Chase"
+      description "Chase Quad 1"
       position -1 0.25 0
       orientation 0 1 0 -1.57
     }
@@ -171,12 +171,12 @@ DEF QuadBody_2 Transform {
       }
     }
     DEF Camera_0001 Viewpoint {
-      description "Quadcopter Camera"
+      description "Quad 2"
       position 0 -0.1 0
       orientation 1 0 0 -1.57
     }
     DEF OnQuad_0001 Viewpoint {
-      description "Chase"
+      description "Chase Quad 2"
       position -1 0.25 0
       orientation 0 1 0 -1.57
     }
@@ -219,12 +219,12 @@ DEF QuadBody_4 Transform {
       }
     }
     DEF Camera_0003 Viewpoint {
-      description "Quadcopter Camera"
+      description "Quad 4"
       position 0 -0.1 0
       orientation 1 0 0 -1.57
     }
     DEF OnQuad_0003 Viewpoint {
-      description "Chase"
+      description "Chase Quad 4"
       position -1 0.25 0
       orientation 0 1 0 -1.57
     }

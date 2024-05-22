@@ -19,7 +19,6 @@ DEF QuadBody_3 Transform {
   translation 57 0.001765 95
   scaleOrientation 0 1 0 0
   scale 4 4 4
-  center 1 0 1
   children [
     DEF Airframe_0002 Transform {
       scaleOrientation 1 0 0 0
@@ -139,7 +138,6 @@ DEF QuadBody_2 Transform {
   translation 57 0.001765 95
   scaleOrientation 0 1 0 0
   scale 4 4 4
-  center 1 0 0
   children [
     DEF Airframe_0001 Transform {
       scaleOrientation 1 0 0 0
@@ -188,7 +186,6 @@ DEF QuadBody_4 Transform {
   translation 57 0.001765 95
   scaleOrientation 0 1 0 0
   scale 4 4 4
-  center 0 0 1
   children [
     DEF Airframe_0003 Transform {
       scaleOrientation 1 0 0 0
@@ -222,12 +219,12 @@ DEF QuadBody_4 Transform {
       }
     }
     DEF Camera_0003 Viewpoint {
-      description "Quadcopter Camera"
+      description "Quad 4"
       position 0 -0.1 0
       orientation 1 0 0 -1.57
     }
     DEF OnQuad_0003 Viewpoint {
-      description "Chase"
+      description "Chase Quad 4"
       position -1 0.25 0
       orientation 0 1 0 -1.57
     }
