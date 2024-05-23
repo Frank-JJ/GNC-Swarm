@@ -24,7 +24,7 @@ I_C = diag([I_xx,I_yy,I_zz])
 
 M_RB = [
     m*eye(3)     zeros(3)
-    zeros(3)            I_C
+    zeros(3)          I_C
 ]
 
 % PID parameters
@@ -32,7 +32,7 @@ PID_angle_max = 100
 PID_thrust_max = 1000
 PID_outer_max = 45
 thrust_max = 100;
-angle_max = 5*pi;
+angle_max = 45;
 PID_outer_max = 10;
 
 out_P = 10;
@@ -44,8 +44,8 @@ in_I = 0;
 in_D = 20;
 
 % Gravity
-g = 9.82
-F_e_g = [0; 0; g]*m % m/s
+g = 9.82;
+F_e_g = [0; 0; g]*m; % m/s
 
 
 %% Swarm dynamics 1D
@@ -54,7 +54,7 @@ disp("------------------")
 % Defining vertice vector V
 %V = [1,2,3,4]
 %V = 1:4 %W/o fix-agent
-V = 1:4
+V = 1:4;
 
 %Starting x-values for drones in swarm
 %x_0 = [0, 1, 2, 3]'
@@ -286,7 +286,6 @@ sim_distances
 agent_fixed = max(simout_x(:,end)) == min(simout_x(:,end)) 
 
 %% Swarm dynamics 2D
-
 disp("------------------")
 
 % Defining vertice vector V
@@ -543,7 +542,6 @@ final_distances_L_w_desired_values_y
 % Compare simulink output with matlab output 2D
 
 expected_distances_x
-
 final_distances_L_w_desired_values_x
 
 sim_last = simout_x(end-3:end,:)
