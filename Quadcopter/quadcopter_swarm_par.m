@@ -1,3 +1,4 @@
+%% Drone dynamics setup
 % Motors weigh 1kg
 m_vec = [1, 1, 1, 1]
 m = sum(m_vec)
