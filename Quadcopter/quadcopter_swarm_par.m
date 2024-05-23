@@ -28,8 +28,9 @@ M_RB = [
 ]
 
 % PID parameters
-PID_inner_max = 100
-PID_outer_max = 10
+PID_angle_max = 100
+PID_thrust_max = 1000
+PID_outer_max = 45
 
 % Gravity
 g = 9.82
