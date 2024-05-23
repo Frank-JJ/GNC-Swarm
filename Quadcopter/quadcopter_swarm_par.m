@@ -28,6 +28,9 @@ M_RB = [
 ]
 
 % PID parameters
+PID_angle_max = 100
+PID_thrust_max = 1000
+PID_outer_max = 45
 thrust_max = 100;
 angle_max = 5*pi;
 PID_outer_max = 10;
