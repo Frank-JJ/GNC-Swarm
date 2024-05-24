@@ -28,27 +28,26 @@ M_RB = [
     zeros(3)          I_C
 ]
 
-% PID parameters
-thrust_max = 1000;
-angle_max = 85;
-PID_outer_max = 45;
-
-out_P = 25;
-out_I = 0;
-out_D = 0;
-
-in_thrust_P = 300;
-in_thrust_I = 60;
-in_thrust_D = 50;
-
-in_P = 10;
-in_I = 0;
-in_D = 20;
-
 % Gravity
 g = 9.82;
 F_e_g = [0; 0; g]*m; % m/s
 
+% PID parameters
+thrust_max = 5*(m*g);
+v_angle_in_max = 60;
+angle_outer_max = 30;
+
+out_P = 20;
+out_I = 0;
+out_D = 50;
+
+in_thrust_P = 10;
+in_thrust_I = 0;
+in_thrust_D = 30;
+
+in_P = 20;
+in_I = 0;
+in_D = 20;
 
 %% Swarm dynamics 1D
 disp("------------------")
@@ -295,7 +294,7 @@ disp("------------------")
 V = 1:5
 
 %Weights for Func_1 and Func_2
-r_m = 2.2; %1 m  distance between drones
+r_m = 2.2; % m  distance between drones
 w_1 = 6;
 w_2 = 1.05*sqrt(3*w_1^2)/abs(atan(-r_m^2)-atan(pi^2));
 w = w_1/10;
