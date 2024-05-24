@@ -295,7 +295,7 @@ disp("------------------")
 % Defining vertice vector V
 %V = [1,2,3,4]
 %V = 1:4 %W/o fix-agent
-V = 1:5
+V = 1:6
 
 %Weights for Func_1 and Func_2
 r_m = 2.2; % m  distance between drones
@@ -304,13 +304,13 @@ w_2 = 1.05*sqrt(3*w_1^2)/abs(atan(-r_m^2)-atan(pi^2));
 w = w_1/10;
 
 %Starting x-values for drones in swarm
-p_0 = [5,5,-5,-5,0;
-       5,-5,5,-5,0]' %Fix-agent
+p_0 = [10,5,-8,-5,8,0;
+       5,-5,5,-13,8,0]' %Fix-agent
 p_0 = p_0(V,:)
 
 %Defining desired displacements p_d
-p_d = [1,4,-2,7, 0;
-       0,0,0,0, 0]'
+p_d = [1,4,-2,7, 9,0;
+       0,0,0,0, 0,0]'
 p_d = p_d(V,:)
 
 %Desired fix-agent

@@ -182,6 +182,54 @@ DEF QuadBody_2 Transform {
     }
   ]
 }
+DEF QuadBody_5 Transform {
+  translation 57 0.001765 95
+  scaleOrientation 0 1 0 0
+  scale 4 4 4
+  children [
+    DEF Airframe_0005 Transform {
+      scaleOrientation 1 0 0 0
+      rotation 0 1 0 0
+      children Inline {
+        url "asbQuadcopterBody.wrl" 
+      }
+    }
+    DEF QuadBody_5_Blade1_0001 Transform {
+      translation 0.0425 0.015 -0.0425
+      children Inline {
+        url "asbQuadcopterBladeCW.wrl" 
+      }
+    }
+    DEF QuadBody_5_Blade3_0001 Transform {
+      translation -0.0425 0.015 0.0425
+      children Inline {
+        url "asbQuadcopterBladeCW.wrl" 
+      }
+    }
+    DEF QuadBody_5_Blade2_0001 Transform {
+      translation -0.0425 0.015 -0.0425
+      children Inline {
+        url "asbQuadcopterBladeCCW.wrl" 
+      }
+    }
+    DEF QuadBody_5_Blade4_0001 Transform {
+      translation 0.0425 0.015 0.0425
+      children Inline {
+        url "asbQuadcopterBladeCCW.wrl" 
+      }
+    }
+    DEF Camera_0005 Viewpoint {
+      description "Quad 5"
+      position 0 -0.1 0
+      orientation 1 0 0 -1.57
+    }
+    DEF OnQuad_0005 Viewpoint {
+      description "Chase Quad 5"
+      position -1 0.25 0
+      orientation 0 1 0 -1.57
+    }
+  ]
+}
 DEF QuadBody_4 Transform {
   translation 57 0.001765 95
   scaleOrientation 0 1 0 0
