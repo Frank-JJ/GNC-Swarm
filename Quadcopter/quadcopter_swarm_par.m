@@ -1,15 +1,19 @@
 %% Drone dynamics setup
 % Motors weigh 1kg
-m_vec = [1, 1, 1, 1]
+m_vec = [1, 1, 1, 1] %kg
 m = sum(m_vec)
 
 % Motors are at these coordinates from center of mass
+diameter = 1;
+
 l = [
     sqrt(2)/2,      sqrt(2)/2,   0
     -sqrt(2)/2,     sqrt(2)/2,   0
     -sqrt(2)/2,     -sqrt(2)/2,   0
     sqrt(2)/2,      -sqrt(2)/2,   0
 ]'
+
+l = l * diameter/2;
 
 % Inertial tensor of quadcopter is then
 I_xx = 0;
@@ -35,7 +39,7 @@ F_e_g = [0; 0; g]*m; % m/s
 % PID parameters
 thrust_max = 5*(m*g);
 v_angle_in_max = 60;
-angle_outer_max = 45;
+angle_outer_max = 60;
 
 out_P = 20;
 out_I = 0;
