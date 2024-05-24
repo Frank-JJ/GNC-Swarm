@@ -35,7 +35,7 @@ F_e_g = [0; 0; g]*m; % m/s
 % PID parameters
 thrust_max = 5*(m*g);
 v_angle_in_max = 60;
-angle_outer_max = 30;
+angle_outer_max = 45;
 
 out_P = 20;
 out_I = 0;
