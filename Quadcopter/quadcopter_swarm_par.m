@@ -593,7 +593,6 @@ p_d = p_d(V,:)
 
 p = p_0
 p_len = size(p,1);
-drone_len = p_len-using_fixed_agent; % Without fixed agent
 
 % Defining code for simulink usage
 using_fixed_agent = 0
@@ -605,6 +604,8 @@ disabled_edges(1:4,6) = 0
 k_nearest = 1
 communication_distance = 0
 balanced = 1
+
+drone_len = p_len-using_fixed_agent; % Without fixed agent
 
 % Define the edge list
 (drone_len-1)*(drone_len)
