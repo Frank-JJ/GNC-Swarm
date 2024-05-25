@@ -582,8 +582,8 @@ R_c = 3; % m communication distance between drones for collision avoidance
 w_2_with_h = 1.05*(1/1.5)*sqrt(3*w_1^2)/abs(atan(-r_m^2)-atan(pi^2))
 
 %Starting x-values for drones in swarm
-p_0 = [10,5,-8,-5,8,0;
-       5,-5,5,-13,8,0]' %Fix-agent
+p_0 = [5,5,-8,5,8,0;
+       10,-5,5,-13,8,0]' %Fix-agent
 p_0 = p_0(V,:)
 
 %Defining desired displacements p_d
@@ -594,9 +594,15 @@ p_d = p_d(V,:)
 
 % Defining code for simulink usage
 using_fixed_agent = 1
-fully_connected = 1
-recieving_agents = [1,1,1,1,1,1]
+fully_connected = 0
+recieving_agents = [1,1,0,1,1,1]
 sending_agents = [1,1,1,1,1,1]
+disabled_edges = zeros(p_len)
+disabled_edges(1:4,6) = 0
+k_nearest = 1
+communication_distance = 12
+balanced = false
+
 
 p = p_0
 p_len = size(p,1);
@@ -604,16 +610,46 @@ drone_len = p_len-using_fixed_agent; % Without fixed agent
 
 % Define the edge list
 (drone_len-1)*(drone_len)
-E = zeros((drone_len-1)*(drone_len),2)
+% Define the edge list
+E = zeros((drone_len-1)*(drone_len),2);
 R = zeros(drone_len ,drone_len);
 num_edges = 1;
 if fully_connected
     for i=1:drone_len 
         for j = 1:drone_len 
             if not(i == j)
-                num_edges
                 E(num_edges,:) = [i,j];
                 num_edges = num_edges + 1;
+            end
+        end
+    end
+elseif communication_distance > 0
+    % Define edges using min distance between vertices
+    % Get min distance from drone i to all other drones
+    for i=1:drone_len 
+        for j=1:drone_len 
+            if not(i == j)
+                R(i,j) = norm(p(i,:) - p(j,:));
+            else
+                R(i,j) = inf;
+            end
+        end
+    end
+    R_min = mink(R,k_nearest,1);
+    for i=1:drone_len 
+        num_conn = 0;
+        for j = 1:drone_len 
+            if num_conn >= k_nearest
+                break
+            end
+            if not(i == j) && R(i,j) <= R_min(k_nearest,i) && R(i,j) <= communication_distance
+                num_conn = num_conn + 1;
+                E(num_edges,:) = [i,j];
+                num_edges = num_edges + 1;
+                if balanced
+                    E(num_edges,:) = [j,i];
+                    num_edges = num_edges + 1;
+                end
             end
         end
     end
@@ -629,24 +665,21 @@ else
             end
         end
     end
-    R_min = min(R,[],1);
+    R_min = mink(R,k_nearest,1);
     for i=1:drone_len 
+        num_conn = 0;
         for j = 1:drone_len 
-            if not(i == j) && R(i,j) <= R_min(i)
-                already_connected = false;
-                for edge = 1:(num_edges-1)
-                    edge_vals = E(edge,:);
-                    if (isequal(edge_vals,[i,j])) || (isequal(edge_vals,[j,i]))
-                        already_connected = true;
-                        break
-                    end
-                end
-                if already_connected
-                    break
-                end
+            if num_conn >= k_nearest
+                break
+            end
+            if not(i == j) && R(i,j) <= R_min(k_nearest,i)
+                num_conn = num_conn + 1;
                 E(num_edges,:) = [i,j];
-                E(num_edges+1,:) = [j,i];
-                num_edges = num_edges + 2;
+                num_edges = num_edges + 1;
+                if balanced
+                    E(num_edges,:) = [j,i];
+                    num_edges = num_edges + 1;
+                end
             end
         end
     end
@@ -760,6 +793,8 @@ for j=1:p_len
         A(:,j) = 0;
     end
 end
+% remove the edges that are not allowed
+A = A.*(ones(p_len)-disabled_edges);
 A
 
 % Defining degree matrix D
