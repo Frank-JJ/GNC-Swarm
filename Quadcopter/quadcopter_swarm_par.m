@@ -596,15 +596,15 @@ p_len = size(p,1);
 drone_len = p_len-using_fixed_agent; % Without fixed agent
 
 % Defining code for simulink usage
-using_fixed_agent = 1
-fully_connected = 0
-recieving_agents = [1,1,0,1,1,1]
-sending_agents = [1,1,1,1,1,1]
+using_fixed_agent = 0
+fully_connected = 1
+recieving_agents = [1,1,1,1,1,0]
+sending_agents = [1,1,1,1,1,0]
 disabled_edges = zeros(p_len)
 disabled_edges(1:4,6) = 0
 k_nearest = 1
-communication_distance = 12
-balanced = false
+communication_distance = 0
+balanced = 1
 
 % Define the edge list
 (drone_len-1)*(drone_len)
@@ -750,7 +750,7 @@ P = eye(length(L)) - epsilon*L
 % Testing convergence
 
 % Expected Decision (balanced)
-alpha_expected = sum(p_0,1)/size(p_0,1)
+alpha_expected = sum(p,1)/size(p,1)
 
 p = p_0;
 x_hist = [p(:,1)];
