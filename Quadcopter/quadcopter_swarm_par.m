@@ -864,3 +864,35 @@ legends = cellstr(num2str(V', 'iy=%-d'));
 legends{end+1} = "expected alpha y";
 legend(legends)
 title("Laplacian 2D y removed drones")
+
+%% Collision avoidance with falied transmission
+%inputs
+p
+w_2
+r_m
+R_c
+recieving_agents = [1,1,1,1,1]
+sending_agents = [1,1,1,1,1]
+
+n_drones = size(p,1) -1
+n_dim = size(p,2)
+
+p_dot_2 = zeros(n_drones + 1,n_dim);
+dist = zeros(n_drones + 1,1);
+
+
+for i = 1:(n_drones)
+    if not(recieving_agents(i))
+        continue
+    end
+    for j = 1:(n_drones)
+        if not(i == j) && sending_agents(j)
+            d_ij = sqrt((p(i,1)-p(j,1))^2+(p(i,2)-p(j,2))^2);
+            dist(i) = d_ij;
+            if d_ij < R_c
+                p_dot_2(i,:) = p_dot_2(i,:) + w_2*(atan2(d_ij^2-r_m^2,1) - atan2(d_ij^2+pi^2,1))*(p(i,:)-p(j,:))/d_ij; 
+            end
+        end
+    end
+end
+p_dot_2
