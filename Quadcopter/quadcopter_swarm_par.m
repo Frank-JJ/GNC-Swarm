@@ -575,8 +575,11 @@ V = 1:6
 %Weights for Func_1 and Func_2
 r_m = 2.2; % m  distance between drones
 w_1 = 6;
-w_2 = 1.05*sqrt(3*w_1^2)/abs(atan(-r_m^2)-atan(pi^2));
-w = w_1/10;
+w_2 = 1.05*sqrt(3*w_1^2)/abs(atan(-r_m^2)-atan(pi^2))
+w = 0.6;
+R_c = 3; % m communication distance between drones for collision avoidance
+
+w_2_with_h = 1.05*(1/1.5)*sqrt(3*w_1^2)/abs(atan(-r_m^2)-atan(pi^2))
 
 %Starting x-values for drones in swarm
 p_0 = [10,5,-8,-5,8,0;
