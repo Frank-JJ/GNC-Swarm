@@ -522,7 +522,7 @@ end
 plot(1:length(x_hist),x_hist' ...
     ,1:length(y_hist),y_hist' ...
     ,[1,length(x_hist)],[p_d(:,1),p_d(:,1)] ...
-    ,[1,length(y_hist)],[p_d(:,1),p_d(:,2)])
+    ,[1,length(y_hist)],[p_d(:,2),p_d(:,2)])
 legends = cellstr(num2str(V', 'ix=%-d'));
 legends = cat(1,legends,cellstr(num2str(V', 'iy=%-d')));
 legends = cat(1,legends,cellstr(num2str(V', 'expected_ix=%-d')));
@@ -565,3 +565,264 @@ sim_distances_y
 
 %Is the fix-agent actually fixed?
 agent_fixed = max(simout_x(:,end)) == min(simout_x(:,end)) 
+
+%% Swarm dynamics 2D with dynamic Laplacian
+disp("----------------")
+% Defining vertice vector V
+%V = 1:4 %W/o fix-agent
+V = 1:6
+
+%Weights for Func_1 and Func_2
+r_m = 2.2; % m  distance between drones
+w_1 = 6;
+w_2 = 1.05*sqrt(3*w_1^2)/abs(atan(-r_m^2)-atan(pi^2));
+w = w_1/10;
+
+%Starting x-values for drones in swarm
+p_0 = [10,5,-8,-5,8,0;
+       5,-5,5,-13,8,0]' %Fix-agent
+p_0 = p_0(V,:)
+
+%Defining desired displacements p_d
+p_d = [1,4,-2,7, 9,0;
+       0,0,0,0, 0,0]'
+p_d = p_d(V,:)
+
+
+% Defining code for simulink usage
+using_fixed_agent = 1
+fully_connected = 1
+recieving_agents = [1,1,1,1,1,1]
+sending_agents = [1,1,1,1,1,1]
+
+p = p_0
+p_len = size(p,1);
+drone_len = p_len-using_fixed_agent; % Without fixed agent
+
+% Define the edge list
+(drone_len-1)*(drone_len)
+E = zeros((drone_len-1)*(drone_len),2)
+R = zeros(drone_len ,drone_len);
+num_edges = 1;
+if fully_connected
+    for i=1:drone_len 
+        for j = 1:drone_len 
+            if not(i == j)
+                num_edges
+                E(num_edges,:) = [i,j];
+                num_edges = num_edges + 1;
+            end
+        end
+    end
+else
+    % Define edges using min distance between vertices
+    % Get min distance from drone i to all other drones
+    for i=1:drone_len 
+        for j=1:drone_len 
+            if not(i == j)
+                R(i,j) = norm(p(i,:) - p(j,:));
+            else
+                R(i,j) = inf;
+            end
+        end
+    end
+    R_min = min(R,[],1);
+    for i=1:drone_len 
+        for j = 1:drone_len 
+            if not(i == j) && R(i,j) <= R_min(i)
+                already_connected = false;
+                for edge = 1:(num_edges-1)
+                    edge_vals = E(edge,:);
+                    if (isequal(edge_vals,[i,j])) || (isequal(edge_vals,[j,i]))
+                        already_connected = true;
+                        break
+                    end
+                end
+                if already_connected
+                    break
+                end
+                E(num_edges,:) = [i,j];
+                E(num_edges+1,:) = [j,i];
+                num_edges = num_edges + 2;
+            end
+        end
+    end
+end
+E
+
+% Define adjacancy matrix A based on these edges
+A = zeros(p_len);
+if using_fixed_agent
+    for i=1:p_len
+        if i == p_len %Meaning this is the fix-agent
+            A(i,:) = 0;
+        else
+            for j = 1:p_len
+                if j == p_len
+                    A(i,j) = 1;
+                end
+                for edge = 1:(num_edges-1)
+                    edge_vals = E(edge,:);
+                    A(edge_vals(1),edge_vals(2)) = 1;
+                end
+            end
+        end
+    end
+else
+    for edge = 1:(num_edges-1)
+        edge_vals = E(edge,:);
+        A(edge_vals(1),edge_vals(2)) = 1;
+    end
+end
+A
+
+% Defining degree matrix D
+D = zeros(p_len);
+for i=1:p_len
+    for j=1:p_len
+        if not(i==j)
+            D(i,i) = D(i,i) + A(i,j);
+        end
+    end
+end
+D
+
+% Defnining graph Laplacian L
+L = D-A
+
+% check row-sum is equal to zero
+rowSums = sum(L,2)
+
+% Define eigenvector of *1* v
+v = ones(length(L),1)
+
+% Test result of L*v=lambda*v, 
+% which should then give zero as per definition (Murray page 6)
+shouldBeZero = L*v
+
+% Test result of L*v=lambda*v, 
+% which should also then give zero if the graph is balanced (Murray page 7)
+% It will not be balanced with the (fix agent)
+shouldBeZero = v'*L
+
+% Then Perron can be defined
+delta = max(diag(D))
+str = "Epsilon can be (" + 0 + "," + 1/delta + "]";
+disp(str)
+epsilon = 1/delta*0.999 % This value should be (0,delta^-1)
+%epsilon = 0.1
+P = eye(length(L)) - epsilon*L
+
+% Testing convergence
+
+% Expected Decision (balanced)
+alpha_expected = sum(p_0,1)/size(p_0,1)
+
+p = p_0;
+x_hist = [p(:,1)];
+y_hist = [p(:,2)];
+loops = 20;
+delta_time = epsilon;
+for t=1:loops
+    p_dot = -L*(p);
+    p = p + p_dot * delta_time;
+    x_hist = [x_hist,p(:,1)];
+    y_hist = [y_hist,p(:,2)];
+end
+figure
+plot(1:length(x_hist),x_hist, ...
+    [1,loops+1],[alpha_expected(1),alpha_expected(1)])
+legends = cellstr(num2str(V', 'ix=%-d'));
+legends{end+1} = "expected alpha x";
+legend(legends)
+title("Laplacian 2D x")
+figure
+plot(1:length(y_hist),y_hist, ...
+    [1,loops+1],[alpha_expected(2),alpha_expected(2)])
+legends = cellstr(num2str(V', 'iy=%-d'));
+legends{end+1} = "expected alpha y";
+legend(legends)
+title("Laplacian 2D y")
+
+% Removing disconnected agents
+% remove the ones that stopped recieving
+for i=1:p_len
+    if recieving_agents(i) == 0
+        A(i,:) = 0;
+    end
+end
+% remove the onse that stopped sending
+for j=1:p_len
+    if sending_agents(j) == 0
+        A(:,j) = 0;
+    end
+end
+A
+
+% Defining degree matrix D
+D = zeros(p_len);
+for i=1:p_len
+    for j=1:p_len
+        if not(i==j)
+            D(i,i) = D(i,i) + A(i,j);
+        end
+    end
+end
+D
+
+% Defnining graph Laplacian L
+L = D-A
+
+% check row-sum is equal to zero
+rowSums = sum(L,2)
+
+% Define eigenvector of *1* v
+v = ones(length(L),1)
+
+% Test result of L*v=lambda*v, 
+% which should then give zero as per definition (Murray page 6)
+shouldBeZero = L*v
+
+% Test result of L*v=lambda*v, 
+% which should also then give zero if the graph is balanced (Murray page 7)
+% It will not be balanced with the (fix agent)
+shouldBeZero = v'*L
+
+% Then Perron can be defined
+delta = max(diag(D))
+str = "Epsilon can be (" + 0 + "," + 1/delta + "]";
+disp(str)
+epsilon = 1/delta*0.999 % This value should be (0,delta^-1)
+%epsilon = 0.1
+P = eye(length(L)) - epsilon*L
+
+% Testing convergence
+
+% Expected Decision (balanced)
+alpha_expected = sum(p_0,1)/size(p_0,1)
+
+p = p_0;
+x_hist = [p(:,1)];
+y_hist = [p(:,2)];
+loops = 20;
+delta_time = epsilon;
+for t=1:loops
+    p_dot = -L*(p);
+    p = p + p_dot * delta_time;
+    x_hist = [x_hist,p(:,1)];
+    y_hist = [y_hist,p(:,2)];
+end
+figure
+plot(1:length(x_hist),x_hist, ...
+    [1,loops+1],[alpha_expected(1),alpha_expected(1)])
+legends = cellstr(num2str(V', 'ix=%-d'));
+legends{end+1} = "expected alpha x";
+legend(legends)
+title("Laplacian 2D x removed drones")
+figure
+plot(1:length(y_hist),y_hist, ...
+    [1,loops+1],[alpha_expected(2),alpha_expected(2)])
+legends = cellstr(num2str(V', 'iy=%-d'));
+legends{end+1} = "expected alpha y";
+legend(legends)
+title("Laplacian 2D y removed drones")
